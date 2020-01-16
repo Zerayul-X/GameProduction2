@@ -78,7 +78,7 @@ public:
 	EmyBullet(SDL_Rect d)
 	{
 		m_dst = d;
-	}
+	} 
 	void update()
 	{
 		m_dst.x -= 6; // Just a literal speed. You may want a variable.
