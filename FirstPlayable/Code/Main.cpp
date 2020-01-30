@@ -11,6 +11,7 @@
 #define HEIGHT 768
 #define FPS 60
 #define BGS 2
+
 #define emyW 100
 #define emyH 100
 #define obW 50
@@ -126,14 +127,22 @@ public:
 		}
 
 		m_dst.y += 2;
-		
+
 		if (m_bulletTimer++ == m_timerMax)
 		{
 			m_bulletTimer = 0;
 			spawnBullet();
 		}
-		if (m_dst.y >= HEIGHT + m_dst.h) {// if enemy get off the screen
-			m_dst.y = HEIGHT + m_dst.h;
+		if (m_dst.y >= HEIGHT + m_dst.h / 4) {// if enemy get off the screen
+			m_dst.y = HEIGHT + m_dst.h / 4;
+			m_active = false;
+		}
+		if (m_dst.x <= 0 - m_dst.w / 4) {// if enemy get off the screen
+			m_dst.x = 0 - m_dst.w / 4;
+			m_active = false;
+		}
+		if (m_dst.x >= WIDTH + m_dst.w / 4) {// if enemy get off the screen
+			m_dst.x = WIDTH + m_dst.w / 4;
 			m_active = false;
 		}
 	}
@@ -395,7 +404,7 @@ void update()
 	int location = (rand() * 66) % 842 + 25; //* 66 to make a better make a better random
 	//the size is less than 1 to make sure there wont be too many enemys
 	if ((int)Enemys.size() < 1) {
-		Enemys.push_back(new Enemy({ location, 0, emyW, emyH }, &enemyBullets, Mix_LoadWAV("laser-old1.wav")) );
+		Enemys.push_back(new Enemy({ location, 0 - emyH, emyW, emyH }, &enemyBullets, Mix_LoadWAV("laser-old1.wav")) );
 	}
 
 	//random location for obstacles
@@ -510,6 +519,16 @@ void update()
 			player_active = false;
 			Mix_PlayChannel(1, g_collsion, 0);
 			temp_dst = g_dst;
+		}
+	}
+	//check for collision between small Obstacle and Obstacle, if there is a collision, the small one disappear
+	for (int i = 0; i < (int)Obstacle.size(); i++) {
+		for (int j = 0; j < (int)ObstacleSmall.size(); j++) {
+			g_isCol = SDL_HasIntersection(&Obstacle[i]->m_dst, & ObstacleSmall[j]->m_dst);
+			if (g_isCol) {
+				ObstacleSmall[i]->m_active = false;
+				Mix_PlayChannel(1, g_collsion, 0);
+			}
 		}
 	}
 	//check collsion between bullet and obstacles, if there's a collsion, bullet get destroyed
