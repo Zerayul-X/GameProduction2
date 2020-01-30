@@ -11,15 +11,18 @@
 #define HEIGHT 768
 #define FPS 60
 #define BGS 2
-#define emyX 100
-#define emyY 100
-#define obX 50
-#define obY 50
-#define miniObX 25
-#define miniObY 25
-#define emyBulletX 55
-#define emyBulletY 50
-
+#define emyW 100
+#define emyH 100
+#define obW 50
+#define obH 50
+#define miniObW 25
+#define miniObH 25
+#define emyBulletW 55
+#define emyBulletH 50
+#define playerSizeW 149
+#define playerSizeH 198
+#define emyBulletSpeed 4
+#define playBulletSpeed 5
 using namespace std;
 
 struct Sprite {
@@ -89,9 +92,10 @@ public:
 	}
 	void update()
 	{
-		m_dst.y += 6; // Just a literal speed. You may want a variable.
-		if (m_dst.y > WIDTH) // Off-screen.
+		m_dst.y += emyBulletSpeed; // speed.
+		if (m_dst.y >= HEIGHT) { // Off-screen.
 			m_active = false;
+		}
 	}
 };
 
@@ -128,15 +132,15 @@ public:
 			m_bulletTimer = 0;
 			spawnBullet();
 		}
-		if (m_dst.x < 0 - m_dst.w) {// if enemy get off the screen
-			m_dst.x = 0 - m_dst.w;
+		if (m_dst.y >= HEIGHT + m_dst.h) {// if enemy get off the screen
+			m_dst.y = HEIGHT + m_dst.h;
 			m_active = false;
 		}
 	}
 	void spawnBullet()
 	{ // Note the -> because we have a POINTER to a vector.
 		//set the size/location of the bullet
-		bulletVec->push_back(new EmyBullet({ m_dst.x, m_dst.y, emyBulletX, emyBulletY }));
+		bulletVec->push_back(new EmyBullet({ m_dst.x, m_dst.y, emyBulletW, emyBulletH }));
 
 		Mix_PlayChannel(m_channel, m_pSound, 0);
 	}
@@ -147,13 +151,12 @@ class Bullet {
 public: //members
 	bool m_active = true; //unique
 	SDL_Rect m_dst; //unique
-	static const int speed = 4; //shared
 public: //methods
 	Bullet(int x, int y) {
 		m_dst = { x - 2, y - 2, 4, 4 };
 	}
 	void update() {
-		m_dst.y -= speed;
+		m_dst.y -= playBulletSpeed;
 		if (m_dst.y < 0) {// if bullet get off the screen
 			m_active = false;
 		}
@@ -265,7 +268,7 @@ bool init(const char* title, int xpos, int ypos, int width, int height, int flag
 	bgArray[0] = { {0,0,1024,768}, {0, 0, 1024, 768} }; // Src and dst rectangle objects.
 	bgArray[1] = { {0,0,1024,768}, {0, -768, 1024, 768} };
 
-	g_src = { 0, 0, 149, 198 };
+	g_src = { 0, 0, playerSizeW, playerSizeH };
 	g_dst = { width / 2 - g_src.w / 4, height - g_src.h / 4, g_src.w / 2, g_src.h / 2 };
 
 	explosion_src = { 0, 0, 91, 136 };
@@ -305,7 +308,7 @@ void handleEvents()
 			if (event.key.keysym.sym == SDLK_ESCAPE)
 				g_bRunning = false;
 			else if (event.key.keysym.sym == SDLK_SPACE) {
-				bulletVec.push_back(new Bullet(g_dst.x + 75, g_dst.y + g_dst.h / 4));
+				bulletVec.push_back(new Bullet(g_dst.x + g_dst.w / 4, g_dst.y + g_dst.h / 4));
 				Mix_PlayChannel(5, g_playerShooting, 0);
 			}
 			break;
@@ -392,7 +395,7 @@ void update()
 	int location = (rand() * 66) % 842 + 25; //* 66 to make a better make a better random
 	//the size is less than 1 to make sure there wont be too many enemys
 	if ((int)Enemys.size() < 1) {
-		Enemys.push_back(new Enemy({ location, 0, emyX, emyY }, &enemyBullets, Mix_LoadWAV("laser-old1.wav")) );
+		Enemys.push_back(new Enemy({ location, 0, emyW, emyH }, &enemyBullets, Mix_LoadWAV("laser-old1.wav")) );
 	}
 
 	//random location for obstacles
@@ -400,14 +403,14 @@ void update()
 	location = (rand() * 1984) % 581 + 25; //* 1984 to make a better random
 
 	if ((int)Obstacle.size() < 1) {
-		Obstacle.push_back(new Obstacles({ 0, location, obX, obY }));
+		Obstacle.push_back(new Obstacles({ 0, location, obW, obH }));
 	}
 	//random location for small obstacles
 	srand((unsigned)time(NULL));
 	location = (rand() * 66) % 631 + 25; //make a better random
 
 	if ((int)ObstacleSmall.size() < 1) {
-		ObstacleSmall.push_back(new Obstacle_small({ WIDTH, location, miniObX, miniObY }));
+		ObstacleSmall.push_back(new Obstacle_small({ WIDTH, location, miniObW, miniObH }));
 	}
 
 
